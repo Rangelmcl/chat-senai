@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chat – Mundo SENAI 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{min-height:100dvh;font-family:'Libre Baskerville',Georgia,serif;background:linear-gradient(160deg,#00203F,#0A5BA8);color:#fff;display:flex;flex-direction:column;align-items:center;padding:20px}
+main{width:100%;max-width:480px;display:flex;flex-direction:column;gap:18px;margin-top:20px}
+h1{font-size:28px;line-height:1.25}h1 span{color:#F47B20}
+p{font-size:17px;line-height:1.5}
+label{font-size:17px;font-weight:700}
+input{width:100%;font:400 20px 'Libre Baskerville',serif;padding:16px;border-radius:12px;border:4px solid #fff;margin-top:6px;color:#00203F}
+input:focus{outline:none;border-color:#F47B20}
+button{font:700 22px 'Libre Baskerville',serif;padding:18px;border:0;border-radius:12px;background:#F47B20;color:#00203F;cursor:pointer}
+button:active{transform:scale(.97)}
+#st{display:inline-flex;align-items:center;gap:10px;font-size:16px}#st:before{content:"";width:16px;height:16px;border-radius:50%;background:#FF6B62}#st.up:before{background:#3DDC84}
+#md{font-size:16px;background:#fff;color:#00203F;padding:8px 14px;border-radius:8px;align-self:flex-start;font-weight:700}
+#fb{min-height:28px;font-size:18px;font-weight:700}
+</style>
+</head>
+<body>
+<main>
+ <h1>Mundo <span>SENAI</span> 2026<br>Chat ao vivo</h1>
+ <p>Escreva uma mensagem. Ela aparecerá no telão.</p>
+ <span id="st">Conectando...</span>
+ <span id="md"></span>
+ <form id="f" autocomplete="off">
+  <label>Seu nome<input id="a" maxlength="24" placeholder="Ex.: Maria" required></label><br><br>
+  <label>Mensagem<input id="t" maxlength="200" placeholder="Digite aqui" required></label><br><br>
+  <button type="submit">Enviar mensagem</button>
+ </form>
+ <div id="fb" role="status"></div>
+</main>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+try{$('#a').value=sessionStorage.getItem('nome')||''}catch(e){}
+const sock=io();let tm;
+const aviso=(t,cor)=>{$('#fb').textContent=t;$('#fb').style.color=cor||'#fff';clearTimeout(tm);tm=setTimeout(()=>$('#fb').textContent='',3000)};
+sock.on('connect',()=>{$('#st').className='up';$('#st').textContent='Conectado'});
+sock.on('disconnect',()=>{$('#st').className='';$('#st').textContent='Desconectado'});
+sock.on('modo',m=>$('#md').textContent=m==='persistente'?'Chat persistente':'Chat efêmero');
+sock.on('aviso',t=>aviso(t,'#FFB26B'));
+$('#f').onsubmit=e=>{e.preventDefault();
+ const autor=$('#a').value.trim(),texto=$('#t').value.trim();if(!autor||!texto)return;
+ try{sessionStorage.setItem('nome',autor)}catch(e){}
+ sock.emit('mensagem',{autor,texto});$('#t').value='';$('#t').focus();aviso('Mensagem enviada!','#8DF0A8')};
+</script>
+</body>
+</html>
