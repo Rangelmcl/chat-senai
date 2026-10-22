@@ -6,10 +6,16 @@ const http = require('http');
 const cors = require('cors');
 const os = require('os');
 const path = require('path');
+const fs = require('fs');
 const { Server } = require('socket.io');
 const db = require('./db');
 
 const PORT = process.env.PORT || 3000;
+// Procura a página em public/ e, se não existir, na raiz do projeto.
+const pagina = nome => {
+  const a = path.join(__dirname, 'public', nome);
+  return fs.existsSync(a) ? a : path.join(__dirname, nome);
+};
 // Palavras bloqueadas (em minúsculas). Lista vazia: definir antes do evento, se desejado.
 const BLOQUEADAS = [];
 
@@ -33,14 +39,14 @@ function ipLocal() {
     for (const i of lista) if (i.family === 'IPv4' && !i.internal) return i.address;
   return 'localhost';
 }
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'apresentacao.html')));
+app.get('/', (req, res) => res.sendFile(pagina('apresentacao.html')));
 app.get('/config', (req, res) => {
   const base = process.env.PUBLIC_URL
     || (process.env.RENDER_EXTERNAL_URL)
     || (process.env.DATABASE_URL ? `${req.protocol}://${req.get('host')}` : `http://${ipLocal()}:${PORT}`);
   res.json({ mobileUrl: `${base}/mobile` });
 });
-app.get('/mobile', (req, res) => res.sendFile(path.join(__dirname, 'public', 'mobile.html')));
+app.get('/mobile', (req, res) => res.sendFile(pagina('mobile.html')));
 app.get('/saude', (req, res) => res.send('ok')); // para testar se o servidor está acordado
 
 io.on('connection', socket => {
