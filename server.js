@@ -49,6 +49,15 @@ app.get('/config', (req, res) => {
 app.get('/mobile', (req, res) => res.sendFile(pagina('mobile.html')));
 app.get('/saude', (req, res) => res.send('ok')); // para testar se o servidor está acordado
 
+// Apaga o histórico gravado. Uso: https://SEU-APP.onrender.com/limpar?senha=SUA_SENHA
+// A senha é definida na variável de ambiente LIMPAR_SENHA (sem ela, a rota fica desativada).
+app.get('/limpar', async (req, res) => {
+  const senha = process.env.LIMPAR_SENHA;
+  if (!senha || req.query.senha !== senha) return res.status(403).send('Acesso negado');
+  try { res.send('Mensagens apagadas: ' + await db.limpar() + '. Atualize o telão (F5).'); }
+  catch (e) { console.error(e); res.status(500).send('Erro ao apagar'); }
+});
+
 io.on('connection', socket => {
   // Só o telão (que informa o modo ao conectar) pode trocar o modo; os celulares não.
   const ehTelao = modoValido(socket.handshake.query.modo);
